@@ -20,42 +20,42 @@ Operator Token::MultiplicativeOperator() const noexcept
 	if (const auto op = std::get_if<Punctuator>(this)) {
 		switch (*op) {
 		case Punctuator::Asterisk:
-			return [](long long lhs, long long rhs) noexcept
+			return { [](long long lhs, long long rhs) noexcept
 			{
 				return lhs * rhs;
-			};
+			}, "*" };
 		case Punctuator::Slash:
-			return [](long long lhs, long long rhs) noexcept
+			return { [](long long lhs, long long rhs) noexcept
 			{
 				return lhs / rhs;
-			};
+			}, "/" };
 		default:
-			return nullptr        ;
+			return { };
 		}
 	}
 	else
-		return nullptr;
+		return { };
 }
 Operator Token::AdditiveOperator() const noexcept
 {
 	if (const auto op = std::get_if<Punctuator>(this)) {
 		switch (*op) {
 		case Punctuator::Plus:
-			return [](long long lhs, long long rhs) noexcept
+			return { [](long long lhs, long long rhs) noexcept
 			{
 				return lhs + rhs;
-			};
+			}, "+" };
 		case Punctuator::Minus:
-			return [](long long lhs, long long rhs) noexcept
+			return { [](long long lhs, long long rhs) noexcept
 			{
 				return lhs - rhs;
-			};
+			}, "-" };
 		default:
-			return nullptr;
+			return {};
 		}
 	}
 	else
-		return nullptr;
+		return {};
 }
 
 bool Token::is_punctuator(Punctuator punct) const noexcept
