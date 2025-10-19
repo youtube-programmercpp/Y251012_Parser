@@ -15,7 +15,6 @@ DialogExpressionParser::DialogExpressionParser
 , _In_ LONG  left_of_edit                
 , _In_ LONG  cy_of_edit                  
 , _In_ SIZE  right_bottom_margin_for_tree
-, _In_ LONG  top_margin_for_errmsg       
 ) noexcept
 	: hEditExpression             { hEditExpression              }
 	, hTree                       { hTree                        }
@@ -24,7 +23,6 @@ DialogExpressionParser::DialogExpressionParser
 	, left_of_edit                { left_of_edit                 }
 	, cy_of_edit                  { cy_of_edit                   }
 	, right_bottom_margin_for_tree{ right_bottom_margin_for_tree }
-	, top_margin_for_errmsg       { top_margin_for_errmsg        }
 {
 }
 void expand_all(HWND hTree, HTREEITEM hItem)
@@ -103,27 +101,12 @@ void resize_window(_In_ HWND hWnd, const SIZE& new_size)
 	else
 		throw std::runtime_error("SetWindowPos failed with " + std::to_string(GetLastError()));
 }
-void move_window(_In_ HWND hWnd, const POINT left_top, const SIZE& new_size)
-{
-	if (/*WINUSERAPI BOOL WINAPI*/MoveWindow
-	( /*_In_ HWND hWnd    */hWnd
-	, /*_In_ int  X       */left_top.x
-	, /*_In_ int  Y       */left_top.y
-	, /*_In_ int  nWidth  */new_size.cx
-	, /*_In_ int  nHeight */new_size.cy
-	, /*_In_ BOOL bRepaint*/true
-	))
-		return;
-	else
-		throw std::runtime_error("SetWindowPos failed with " + std::to_string(GetLastError()));
-}
 void DialogExpressionParser::resize_dialog(_In_ HWND hDlg, _In_ const SIZE& size_of_client)
 {
 	const auto size_of_edit = SIZE{ size_of_client.cx - dx_dlg_and_edit, cy_of_edit };
 	resize_window(hEditExpression, size_of_edit);
 	resize_window(hTree, size_of_client - right_bottom_margin_for_tree);
-	const auto top_of_errmsg = size_of_client.cy - top_margin_for_errmsg;
-	move_window(hEditErrMsg, POINT{left_of_edit, top_of_errmsg}, size_of_edit);
+	resize_window(hEditErrMsg, size_of_edit);
 }
 INT_PTR DialogExpressionParser::DialogProc(_In_ HWND hDlg, _In_ UINT message, _In_ WPARAM wParam, _In_ LPARAM lParam) noexcept
 {
@@ -187,16 +170,14 @@ INT_PTR DialogExpressionParser::Show(_In_opt_ HWND hWndParent) noexcept
 					const auto size_of_client    = size_of_rect(client_rect(hDlg));
 					const auto rect_of_edit      = screen_to_client(hDlg, window_rect(hEditExpression));
 					const auto rect_of_tree      = screen_to_client(hDlg, window_rect(hTree          ));
-					const auto rect_of_errmsg    = screen_to_client(hDlg, window_rect(hEditErrMsg    ));
 					std::unique_ptr<DialogExpressionParser> dlg(new DialogExpressionParser
 						{ /*_In_ HWND  hEditExpression             */hEditExpression
 						, /*_In_ HWND  hTree                       */hTree
 						, /*_In_ HWND  hEditErrMsg                 */hEditErrMsg
 						, /*_In_ LONG  dx_dlg_and_edit             */size_of_client.cx   - (rect_of_edit.right - rect_of_edit.left)
-						, /*_In_ LONG  left_of_edit                */rect_of_errmsg.left
+						, /*_In_ LONG  left_of_edit                */rect_of_edit.left
 						, /*_In_ LONG  cy_of_edit                  */rect_of_edit.bottom - rect_of_edit.top
 						, /*_In_ SIZE  right_bottom_margin_for_tree*/size_of_client      - size_of_rect(rect_of_tree)
-						, /*_In_ LONG  top_margin_for_errmsg       */size_of_client.cy   - rect_of_errmsg.top
 						});
 					SetWindowLongPtrW(hDlg, DWLP_USER, LONG_PTR(dlg.get()));
 					SetWindowLongPtrW(hDlg, DWLP_DLGPROC, LONG_PTR(static_cast<DLGPROC>(
