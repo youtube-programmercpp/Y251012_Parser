@@ -25,7 +25,7 @@ std::unique_ptr<Expression> Parser::Mulitiplicative()
 	for (auto left = Primary();;) {
 		if (const auto op = last_token.MultiplicativeOperator()) {
 			last_token = tokenizer.read_token();
-			left = Expression::Binary(std::move(left), op, Mulitiplicative());
+			left = Expression::Binary(std::move(left), op, Primary());
 			continue;
 		}
 		else
@@ -37,7 +37,7 @@ std::unique_ptr<Expression> Parser::Additive()
 	for (auto left = Mulitiplicative();;) {
 		if (const auto op = last_token.AdditiveOperator()) {
 			last_token = tokenizer.read_token();
-			left = Expression::Binary(std::move(left), op, Additive());
+			left = Expression::Binary(std::move(left), op, Mulitiplicative());
 			continue;
 		}
 		else
